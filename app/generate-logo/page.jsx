@@ -1,5 +1,6 @@
-"use client"
-import React, { useContext, useEffect, useState } from 'react';
+"use client"; // Ensures the component is client-side
+
+import React, { useContext, useEffect, useState, Suspense } from 'react';
 import { UserDetailContext } from '../_context/UserDetailContext';
 import Prompt from '../_data/Prompt';
 import axios from 'axios';
@@ -19,7 +20,6 @@ function GenerateLogo() {
     const modelType = searchParams.get('type');
 
     useEffect(() => {
-        // 1. Load formData from localStorage when the component is mounted
         if (typeof window !== 'undefined' && userDetail?.email) {
             try {
                 const storage = localStorage.getItem('formData');
@@ -31,15 +31,15 @@ function GenerateLogo() {
                 console.error('Error parsing form data:', err);
             }
         }
-    }, [userDetail]); // Only run this once when `userDetail` changes
+    }, [userDetail]);
 
     const generateAILogo = async () => {
         if (modelType !== 'Free' && userDetail?.credits <= 0) {
             toast.error("Not enough credits, sorry.");
-            return; // Early return if no credits
+            return;
         }
 
-        if (!formData?.title || !userDetail?.email) return; // Ensure formData and userDetail are available
+        if (!formData?.title || !userDetail?.email) return;
 
         setLoading(true);
 
@@ -65,35 +65,26 @@ function GenerateLogo() {
                 setLogoImage(response.data.image.url);
             }
         } catch (err) {
-            // Show error message to user
             alert(err.response?.data?.error || "Something went wrong. Please try again later.");
         } finally {
             setLoading(false);
         }
     };
 
-    // const onDownload = () => {
-    //     console.log(logoImage)
-    //     const imageWindow = window.open();
-    //     imageWindow.document.write(`<img src="${logoImage}" alt="Base64 Image" />`)
-    // }
-
-    //rather use this one to download test later 
     const onDownload = () => {
         if (!logoImage) return;
 
         const anchor = document.createElement("a");
-        anchor.href = logoImage; // Image URL
-        anchor.download = "logo.png"; // File name for download
+        anchor.href = logoImage;
+        anchor.download = "logo.png";
         anchor.click();
     };
 
     useEffect(() => {
-        // Trigger logo generation only when formData is set and credits are available
         if (formData?.title) {
             generateAILogo();
         }
-    }, [formData, userDetail, modelType]); // This will run when formData, userDetail, or modelType changes
+    }, [formData, userDetail, modelType]);
 
     if (loading) {
         return (
@@ -133,4 +124,10 @@ function GenerateLogo() {
     return null;
 }
 
-export default GenerateLogo;
+export default function SuspendedGenerateLogo() {
+    return (
+        <Suspense fallback={<div>Loading logo...</div>}>
+            <GenerateLogo />
+        </Suspense>
+    );
+}
