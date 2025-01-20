@@ -18,7 +18,11 @@ function Header() {
             </Link>
             <div className='flex gap-4 items-center'>
 
-                {user ? <Button variant="sex1">Dashboard</Button> :
+                {user ?
+
+                    <Button variant="sex1">Dashboard</Button>
+
+                    :
                     <Button>Get Started</Button>
                 }
                 <UserButton
